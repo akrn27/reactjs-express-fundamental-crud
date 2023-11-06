@@ -1,0 +1,105 @@
+import { useState } from "react";
+
+function App() {
+  // Initial value for CRUD
+  const [mhs, setMhs] = useState([
+    { id: 1, name: "Andika" },
+    { id: 2, name: "Dika" },
+    { id: 3, name: "Kurnia" },
+  ]);
+
+  const [name, setName] = useState("");
+  // For trigger the Edit func
+  const [infoEdit, setInfoEdit] = useState(false);
+  const [idData, setIdData] = useState()
+
+  // For handle Create & Edit trigger by useState infoEdit
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if(infoEdit) {
+      const editData = mhs.find((res) => res.id === idData)
+      editData.name = name;
+      setMhs([...mhs])
+    }else {
+      const id = mhs.length + 1;
+      const newData = { id, name };
+      setMhs([...mhs, newData]);
+      setName("");
+    }
+    setInfoEdit(false)
+  };
+
+  // Handle Delete
+  const handleDelete = (id) => {
+    const newData = mhs.filter((res) => res.id !== id);
+    setMhs(newData);
+  };
+
+  // For handleEdit and trigger the useState infoEdit, so it can run the Edit
+  const handleEdit = (id) => {
+    const editData = mhs.find((res) => res.id === idData)
+    setName(editData?.name)
+    setInfoEdit(true);
+    setIdData(id)
+  };
+
+  return (
+    <div className="App">
+      <div className="shadow-sm">
+        {mhs?.map((res) => (
+          <ul className="flex w-full items-center p-2 shadow-sm gap-3">
+            <li>{res.id}</li>
+            <li>{res.name}</li>
+            <li className="flex gap-2">
+              <button
+                value={res.id}
+                onClick={(e) => handleEdit(res.id)}
+                className="bg-cyan-500 py-2 px-3"
+              >
+                Edit
+              </button>
+              <button
+                value={res.id}
+                onClick={(e) => handleDelete(res.id)}
+                className="bg-red-500 py-2 px-3"
+              >
+                Delete
+              </button>
+            </li>
+          </ul>
+        ))}
+      </div>
+
+      <form
+        onSubmit={handleSubmit}
+        className="flex justify-center items-center"
+      >
+        <label htmlFor="name">Name</label>
+        <input
+          className="shadow-lg mt-3 ml-2"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        {infoEdit ? (
+          <button
+            type="submit"
+            className="bg-zinc-500 text-slate-50 py-2 px-4 rounded-md hover:opacity-95"
+          >
+            Edit
+          </button>
+        ) : (
+          <button
+            type="submit"
+            className="bg-zinc-800 text-slate-50 py-2 px-4 rounded-md hover:opacity-95"
+          >
+            Save
+          </button>
+        )}
+      </form>
+    </div>
+  );
+}
+
+export default App;
