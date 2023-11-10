@@ -1,105 +1,118 @@
-import { useState } from "react";
+import React, { useState } from "react";
 
-function App() {
-  // Initial value for CRUD
-  const [mhs, setMhs] = useState([
-    { id: 1, name: "Andika" },
-    { id: 2, name: "Dika" },
-    { id: 3, name: "Kurnia" },
+const Crud = () => {
+  const [emps, setEmps] = useState([
+    { id: 1, name: "Andika", job: "Director" },
+    { id: 2, name: "Kurnia", job: "Frontend developer" },
+    { id: 3, name: "Diko", job: "Backend developer" },
   ]);
 
   const [name, setName] = useState("");
-  // For trigger the Edit func
-  const [infoEdit, setInfoEdit] = useState(false);
-  const [idData, setIdData] = useState()
+  const [job, setJob] = useState("");
 
-  // For handle Create & Edit trigger by useState infoEdit
+  // Handle Edit
+  const [editStatus, setEditStatus] = useState(false);
+  const [idEdit, setIdEdit] = useState("");
+
+  // CRUD
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    if(infoEdit) {
-      const editData = mhs.find((res) => res.id === idData)
+    if (editStatus) {
+      const editData = emps.find((emp) => emp.id === idEdit);
       editData.name = name;
-      setMhs([...mhs])
-    }else {
-      const id = mhs.length + 1;
-      const newData = { id, name };
-      setMhs([...mhs, newData]);
-      setName("");
+      editData.job = job;
+      setEmps([...emps]);
+      setEditStatus(false);
+    } else {
+      const idData = emps.length + 1;
+      console.log(idData);
+      setEmps([...emps, { id: idData, name, job }]);
     }
-    setInfoEdit(false)
+    setName("")
+    setJob("")
   };
 
-  // Handle Delete
-  const handleDelete = (id) => {
-    const newData = mhs.filter((res) => res.id !== id);
-    setMhs(newData);
+  const handleDelete = (idData) => {
+    const deleteData = emps.filter((emp) => emp.id !== idData);
+    setEmps([...deleteData]);
   };
 
-  // For handleEdit and trigger the useState infoEdit, so it can run the Edit
-  const handleEdit = (id) => {
-    const editData = mhs.find((res) => res.id === idData)
-    setName(editData?.name)
-    setInfoEdit(true);
-    setIdData(id)
+  const handleEdit = (idData) => {
+    const editData = emps.find((emp) => emp.id === idData);
+    console.log(editData);
+    setName(editData.name);
+    setJob(editData.job);
+    setIdEdit(idData);
+    setEditStatus(true);
   };
 
   return (
-    <div className="App">
-      <div className="shadow-sm">
-        {mhs?.map((res) => (
-          <ul className="flex w-full items-center p-2 shadow-sm gap-3">
-            <li>{res.id}</li>
-            <li>{res.name}</li>
-            <li className="flex gap-2">
-              <button
-                value={res.id}
-                onClick={(e) => handleEdit(res.id)}
-                className="bg-cyan-500 py-2 px-3"
-              >
-                Edit
-              </button>
-              <button
-                value={res.id}
-                onClick={(e) => handleDelete(res.id)}
-                className="bg-red-500 py-2 px-3"
-              >
-                Delete
-              </button>
-            </li>
-          </ul>
-        ))}
-      </div>
-
-      <form
-        onSubmit={handleSubmit}
-        className="flex justify-center items-center"
-      >
-        <label htmlFor="name">Name</label>
-        <input
-          className="shadow-lg mt-3 ml-2"
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        {infoEdit ? (
-          <button
-            type="submit"
-            className="bg-zinc-500 text-slate-50 py-2 px-4 rounded-md hover:opacity-95"
-          >
-            Edit
+    <div className="col-span-6">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-1">
+        <div>
+          <input
+            className="border-2 w-full"
+            placeholder="Name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
+        <div>
+          <input
+            className="w-full border-2"
+            placeholder="Job Description"
+            type="text"
+            value={job}
+            onChange={(e) => setJob(e.target.value)}
+          />
+        </div>
+        {editStatus ? (
+          <button type="submit" className="w-full bg-slate-900 text-white">
+            Update
           </button>
         ) : (
-          <button
-            type="submit"
-            className="bg-zinc-800 text-slate-50 py-2 px-4 rounded-md hover:opacity-95"
-          >
+          <button type="submit" className="w-full bg-slate-900 text-white">
             Save
           </button>
         )}
       </form>
+
+      <table className="border-collapse border border-slate-500 w-full mt-3">
+        <thead>
+          <tr className="bg-slate-200">
+            <th>No</th>
+            <th>Name</th>
+            <th>Job Desc</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {emps?.map((emp, i) => (
+            <tr key={emp.id}>
+              <td>{i + 1}</td>
+              <td>{emp.name}</td>
+              <td>{emp.job}</td>
+              <td className="flex justify-center gap-1">
+                <button
+                  onClick={() => handleEdit(emp.id)}
+                  className="bg-green-500 text-white py-1 px-2 rounded-md hover:opacity-90"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(emp.id)}
+                  className="bg-red-500 text-white py-1 px-2 rounded-md hover:opacity-90"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
-}
+};
 
-export default App;
+export default Crud;
