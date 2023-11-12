@@ -65,3 +65,133 @@ export const productSelectors = productEntity.getSelectors(
   (state) => state.product
 );
 export default productSlice.reducer;
+
+
+
+
+
+
+// ShowProduct.js
+import React, { useEffect, useState } from "react";
+import {
+  getProducts,
+  addProduct,
+  productSelectors,
+  deleteProduct,
+  editProduct,
+} from "../features/productSlice";
+import { useDispatch, useSelector } from "react-redux";
+
+// Flowbite
+import { Table, Label, TextInput, Button } from "flowbite-react";
+
+const ShowProduct = () => {
+  const dispatch = useDispatch();
+  const products = useSelector(productSelectors.selectAll);
+
+  const [title, setTitle] = useState("");
+  const [price, setPrice] = useState("");
+  const [idData, setIdData] = useState("");
+  const [editStatus, setEditStatus] = useState(false);
+
+  useEffect(() => {
+    dispatch(getProducts());
+  }, [dispatch]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (editStatus) {
+      await dispatch(editProduct({ id: idData, title, price }));
+      setIdData("");
+      setEditStatus(false);
+    } else {
+      await dispatch(addProduct({ title, price }));
+    }
+    setTitle("");
+    setPrice("");
+  };
+
+  const handleDelete = (id) => {
+    dispatch(deleteProduct({ id }));
+    dispatch(getProducts());
+  };
+
+  const handleEdit = (id) => {
+    const editValue = products.find((product) => product.id === id);
+    setIdData(editValue.id);
+    setTitle(editValue.title);
+    setPrice(editValue.price);
+    setEditStatus(true);
+  };
+
+  return (
+    <div onSubmit={handleSubmit} className="col-span-12">
+      <form className="flex max-w-md flex-col gap-4">
+        <div className="my-2">
+          <TextInput
+            type="title"
+            placeholder="Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <TextInput
+            type="number"
+            placeholder="Price"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            required
+          />
+        </div>
+        {editStatus ? (
+          <Button type="submit">Update</Button>
+        ) : (
+          <Button type="submit">Submit</Button>
+        )}
+      </form>
+
+      <Table>
+        <Table.Head>
+          <Table.HeadCell>No</Table.HeadCell>
+          <Table.HeadCell>Title</Table.HeadCell>
+          <Table.HeadCell>Price</Table.HeadCell>
+          <Table.HeadCell>
+            <span className="sr-only">Edit</span>
+          </Table.HeadCell>
+        </Table.Head>
+        <Table.Body className="divide-y">
+          {products &&
+            products.map((product, i) => (
+              <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
+                <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
+                  {i + 1}
+                </Table.Cell>
+                <Table.Cell>{product.title}</Table.Cell>
+                <Table.Cell>{product.price}</Table.Cell>
+                <Table.Cell>
+                  <button
+                    type="button"
+                    className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
+                    onClick={() => handleEdit(product.id)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    className="font-medium text-red-600 hover:underline ml-2 dark:text-red-500"
+                    onClick={() => handleDelete(product.id)}
+                  >
+                    Delete
+                  </button>
+                </Table.Cell>
+              </Table.Row>
+            ))}
+        </Table.Body>
+      </Table>
+    </div>
+  );
+};
+
+export default ShowProduct;
