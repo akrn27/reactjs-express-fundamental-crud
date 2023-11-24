@@ -1,0 +1,99 @@
+// #1 index.js (CRUD Implementation)
+const express = require("express");
+const app = express();
+const port = 3001;
+const db = require("./connection");
+const response = require("./response");
+
+app.use(express.json())
+
+app.get("/mahasiswa", (req, res) => {
+  const sql = "SELECT * FROM mahasiswa";
+  db.query(sql, (err, fields) => {
+    response(200, fields, "GET ALL DATA", res);
+  });
+});
+app.get("/mahasiswa/:id", (req, res) => {
+  const id = req.params.id;
+  const mhs = `SELECT * FROM mahasiswa WHERE id = ?`;
+  db.query(mhs, [id], (error, result) => {
+    response(200, result, "GET DATA BY ID", res);
+  });
+});
+
+app.post("/mahasiswa", (req, res) => {
+  const {nim, nama_lengkap, kelas, alamat} = req.body
+  const sql = `INSERT INTO mahasiswa (nim, nama_lengkap, kelas, alamat) VALUES (?, ?, ?, ?)`;
+  db.query(sql, [nim, nama_lengkap, kelas, alamat] ,(err, fields) => {
+    if(err) response(500, "invalid", "error", res)
+    if(fields?.affectedRows) {
+        const data = {
+            isSuccess: fields.affectedRows,
+            id: fields.insertId
+        }
+        response(200, data, "post data successfully", res)
+    }
+})
+});
+
+app.put("/mahasiswa/:id", (req, res) => {
+    const id = req.params.id;
+    const {nama_lengkap, kelas, alamat} = req.body
+    const sql = 'UPDATE mahasiswa SET nama_lengkap = ?, kelas = ?, alamat = ? WHERE id = ?';
+    db.query(sql, [nama_lengkap, kelas, alamat, id], (err, fields) => {
+        if(fields?.affectedRows) {
+            const data = {
+                isSuccess: fields.affectedRows,
+                id: fields.insertId
+            }
+            response(200, data, "update data success", res);
+        }else {
+            response(500, "update data failed", "error", res)
+        }
+    })
+});
+
+app.delete("/mahasiswa/:id", (req, res) => {
+    const id = req.params.id;
+    const sql = 'DELETE FROM mahasiswa WHERE id = ?';
+    db.query(sql, [id], (err, fields) => {
+        if(err) {
+            response(500, "delete data failed", "error", res)
+        }else{
+            response(200, "deleted", "delete data success", res)
+        }
+    })
+  response(200, [], "DELETE DATA", res);
+});
+
+app.listen(port, () => {
+  console.log(`Listening on port ${port}`);
+});
+
+
+
+// #2 response.js (template response)
+const response = (statusCode, data, message, res) => {
+    res.json(statusCode, {
+        payload: data,
+        message,
+        metadata: {
+            prev: "",
+            next: "",
+            max: ""
+        }
+    })
+}
+module.exports = response;
+
+// #3 connection.js (Connection to database)
+const mysql = require('mysql');
+
+const db = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: "",
+    database: "akrnuniversity"
+})
+
+module.exports = db
