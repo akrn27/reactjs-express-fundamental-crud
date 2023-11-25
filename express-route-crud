@@ -4,8 +4,11 @@ const app = express();
 const port = 3001;
 const db = require("./connection");
 const response = require("./response");
+const cors = require('cors');
 
 app.use(express.json())
+// Untuk bisa akses API server di frontend (CORS)
+app.use(cors())
 
 app.get("/mahasiswa", (req, res) => {
   const sql = "SELECT * FROM mahasiswa";
@@ -71,7 +74,6 @@ app.listen(port, () => {
 });
 
 
-
 // #2 response.js (template response)
 const response = (statusCode, data, message, res) => {
     res.json(statusCode, {
@@ -85,6 +87,7 @@ const response = (statusCode, data, message, res) => {
     })
 }
 module.exports = response;
+
 
 // #3 connection.js (Connection to database)
 const mysql = require('mysql');
