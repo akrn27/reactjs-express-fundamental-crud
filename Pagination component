@@ -1,0 +1,60 @@
+import React, { useState } from "react";
+
+const Coba = () => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [data, setData] = useState([
+    { id: 1, name: "Dika" },
+    { id: 2, name: "Tom" },
+    { id: 3, name: "Kurnia" },
+    { id: 4, name: "Michael" },
+    { id: 5, name: "Cici" },
+  ]);
+
+  const itemsPerPage = 2;
+  const totalPages = Math.ceil(data.length / itemsPerPage);
+
+  const paginatedData = data.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  return (
+    <div className="w-full mt-4 h-40 flex flex-col justify-between">
+      <table className="w-1/2 mx-auto">
+        <thead>
+          <tr>
+            <th>Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          {paginatedData.map((item) => (
+            <tr className="border bg-black text-white">
+              <td key={item.id}>{item.name}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div className="pagination text-center">
+        <button onClick={handlePreviousPage}>Sebelumnya </button>
+        <span>
+          Halaman {currentPage} dari {totalPages}
+        </span>
+        <button onClick={handleNextPage}>Berikutnya</button>
+      </div>
+    </div>
+  );
+};
+
+export default Coba;
