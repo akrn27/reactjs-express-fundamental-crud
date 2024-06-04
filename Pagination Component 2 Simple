@@ -41,3 +41,15 @@ filteredUser === undefined
                     </Table.Cell>
                   </Table.Row>
                 ))
+
+
+
+{/* Pagination Component */}
+      <div className="flex overflow-x-auto sm:justify-center">
+        <Pagination
+          layout="table"
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+        />
+      </div>
