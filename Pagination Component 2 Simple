@@ -1,0 +1,43 @@
+Menggunakan Tailwind & Flowbite component
+
+// UseState for Pagination
+  const pageSize = 5;
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.ceil(users?.length / pageSize);
+
+  const startUser = (currentPage - 1) * pageSize;
+  const endUser = Math.min(currentPage * pageSize, users?.length);
+  const currentUsers = users?.slice(startUser, endUser);
+
+  const onPageChange = (page) => {
+    setCurrentPage(page)
+  }
+
+
+filteredUser === undefined
+              ? currentUsers &&
+                currentUsers.map((user) => (
+                  <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
+                    <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
+                      {user.id}
+                    </Table.Cell>
+                    <Table.Cell>{user.name}</Table.Cell>
+                    <Table.Cell>{user.job}</Table.Cell>
+                    <Table.Cell>{user.gender}</Table.Cell>
+                    <Table.Cell className="flex gap-3">
+                      <Link
+                        to={`/edit/${user.id}`}
+                        className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
+                      >
+                        Edit
+                      </Link>
+                      <button
+                        value={user.id}
+                        onClick={(e) => handleDelete(e.target.value)}
+                        className="font-medium text-red-600 hover:underline dark:text-red-500"
+                      >
+                        Delete
+                      </button>
+                    </Table.Cell>
+                  </Table.Row>
+                ))
