@@ -1,0 +1,371 @@
+///// src/features/api/apiSlice.js
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+
+export const apiSlice = createApi({
+  reducerPath: "apiSlice",
+  baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:5000" }),
+  endpoints: (builder) => ({
+    getEmployees: builder.query({
+      query: () => `/employee`,
+      providesTags: ["Employees"],
+    }),
+    addEmployee: builder.mutation({
+      query: (employee) => {
+        return {
+          url: `/employee`,
+          method: "POST",
+          body: employee,
+        };
+      },
+      invalidatesTags: ["Employees"],
+    }),
+    getEmployee: builder.query({
+      query: (_id) => `/employee/${_id}`,
+      providesTags: (result, _id) => [{ type: "Employee", _id }],
+    }),
+    updateEmployee: builder.mutation({
+      query: (employee) => {
+        const { _id, ...body } = employee;
+        return {
+          url: `/employee/${_id}`,
+          method: "PUT",
+          body,
+        };
+      },
+      invalidatesTags: ["Employees"],
+    }),
+    deleteEmployee: builder.mutation({
+      query: (_id) => {
+        return {
+          url: `/employee/${_id}`,
+          method: "DELETE",
+        };
+      },
+      invalidatesTags: ["Employees"],
+    }),
+  }),
+});
+
+export const {
+  useGetEmployeesQuery,
+  useAddEmployeeMutation,
+  useGetEmployeeQuery,
+  useUpdateEmployeeMutation,
+  useDeleteEmployeeMutation
+} = apiSlice;
+
+
+
+///// src/app/store.js
+import { configureStore } from "@reduxjs/toolkit";
+import employeeReducer from '../features/employeeSlice'
+import authReducer from "../features/authSlice";
+import {apiSlice} from '../features/api/apiSlice';
+
+export const store = configureStore({
+    reducer: {
+        employees: employeeReducer,
+        auth: authReducer,
+        [apiSlice.reducerPath]: apiSlice.reducer
+    },
+    middleware: (getDefaultMiddleware) => 
+        getDefaultMiddleware().concat(apiSlice.middleware)
+})
+
+
+
+///// src/pages/auth/LoginPages.js
+import React, { useEffect, useState } from "react";
+import Layout from "../../components/layout/Layout";
+import { Button, Label, Radio, Select, Table, TextInput } from "flowbite-react";
+
+// Redux Query
+import {
+  useGetEmployeesQuery,
+  useAddEmployeeMutation,
+  useGetEmployeeQuery,
+  useUpdateEmployeeMutation,
+  useDeleteEmployeeMutation,
+} from "../../features/api/apiSlice";
+
+const LoginPage = () => {
+  const [name, setName] = useState("");
+  const [address, setAddress] = useState("");
+  const [position, setPosition] = useState("");
+  const [departmentId, setDepartmentId] = useState("668a9e78487b9a105406b5f0");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [roles, setRoles] = useState("admin");
+  const [gender, setGender] = useState("male");
+  const [_id, set_Id] = useState("");
+
+  // Untuk tanda edit dan create
+  const [editStatus, setEditStatus] = useState(false);
+
+  // Redux Query
+  const { data: employees, error, isLoading } = useGetEmployeesQuery();
+  const [addEmployee] = useAddEmployeeMutation();
+  const { data: employee } = useGetEmployeeQuery(_id);
+  const [updateEmployee] = useUpdateEmployeeMutation();
+  const [deleteEmployee] = useDeleteEmployeeMutation(_id);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (editStatus) {
+      updateEmployee({_id, name, address, position, departmentId, email, password, roles, gender})
+      console.log(_id)
+    } else {
+      addEmployee({
+        name,
+        address,
+        position,
+        departmentId,
+        email,
+        password,
+        roles,
+        gender,
+      });
+    }
+    setName('')
+    setAddress('')
+    setPosition('')
+    setDepartmentId('668a9e78487b9a105406b5f0')
+    setEmail('')
+    setPassword('')
+    setRoles('admin')
+    setGender('male')
+    setEditStatus(false)
+  };
+
+  useEffect(() => {
+    setName(employee?.data?.name);
+    setAddress(employee?.data?.address);
+    setPosition(employee?.data?.position);
+    setDepartmentId(employee?.data?.departmentId?._id);
+    setEmail(employee?.data?.email);
+    setRoles(employee?.data?.roles);
+    setGender(employee?.data?.gender);
+  }, [employee]);
+
+  const handleEdit = (e) => {
+    set_Id(e);
+    setEditStatus(true);
+  };
+
+  const handleDelete = (e) => {
+    deleteEmployee(e);
+  };
+
+  return (
+    <Layout>
+      <form
+        className="flex flex-col gap-4 w-full shadow-xl p-3 mb-5"
+        onSubmit={handleSubmit}
+      >
+        <div>
+          <div className="mb-2 block">
+            <Label htmlFor="name" value="Employee's name" />
+          </div>
+          <TextInput
+            id="name"
+            type="text"
+            placeholder="Muhammad Johnson"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
+        <div>
+          <div className="mb-2 block">
+            <Label htmlFor="address" value="Employee's address" />
+          </div>
+          <TextInput
+            id="address"
+            type="text"
+            placeholder="Depok"
+            required
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+          />
+        </div>
+        <div>
+          <div className="mb-2 block">
+            <Label htmlFor="position" value="Employee's position" />
+          </div>
+          <TextInput
+            id="position"
+            type="text"
+            placeholder="Intern"
+            required
+            value={position}
+            onChange={(e) => setPosition(e.target.value)}
+          />
+        </div>
+        <div className="max-w-md">
+          <div className="mb-2 block">
+            <Label htmlFor="department" value="Employee's department" />
+          </div>
+          <Select
+            id="departmentId"
+            required
+            value={departmentId}
+            onChange={(e) => setDepartmentId(e.target.value)}
+          >
+            <option value="668a9e78487b9a105406b5f0">
+              Information Technology
+            </option>
+            <option value="668a9fa1487b9a105406b600">Marketing</option>
+            <option value="668a9fdc487b9a105406b602">Transport</option>
+            <option value="668a9feb487b9a105406b605">Human Resoures</option>
+            <option value="668aa7a7f75ad7f41c46fd8f">C-Suite</option>
+          </Select>
+        </div>
+        <div>
+          <div className="mb-2 block">
+            <Label htmlFor="email" value="Employee's email" />
+          </div>
+          <TextInput
+            id="email"
+            type="email"
+            placeholder="john@mail.com"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+        <div>
+          <div className="mb-2 block">
+            <Label htmlFor="password" value="Employee's password" />
+          </div>
+          <TextInput
+            id="password"
+            type="password"
+            placeholder="********"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+        <div>
+          <fieldset className="flex max-w-md flex-row gap-4">
+            <legend className="mb-4">Employee's role</legend>
+            <div className="flex items-center gap-2">
+              <Radio
+                id="admin"
+                name="roles"
+                value="admin"
+                checked={roles === "admin"}
+                onChange={(e) => setRoles(e.target.value)}
+                defaultChecked
+              />
+              <Label htmlFor="admin">Admin</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Radio
+                id="user"
+                name="roles"
+                value="user"
+                checked={roles === "user"}
+                onChange={(e) => setRoles(e.target.value)}
+              />
+              <Label htmlFor="user">User</Label>
+            </div>
+          </fieldset>
+        </div>
+        <div>
+          <fieldset className="flex max-w-md flex-row gap-4">
+            <legend className="mb-4">Employee's gender</legend>
+            <div className="flex items-center gap-2">
+              <Radio
+                id="male"
+                name="gender"
+                value="male"
+                checked={gender === "male"}
+                onChange={(e) => setGender(e.target.value)}
+                defaultChecked
+              />
+              <Label htmlFor="male">Male</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Radio
+                id="female"
+                name="gender"
+                value="female"
+                checked={gender === "female"}
+                onChange={(e) => setGender(e.target.value)}
+              />
+              <Label htmlFor="female">Female</Label>
+            </div>
+          </fieldset>
+        </div>
+        <Button color="dark" className="w-full" type="submit">
+          {editStatus ? 'Update' : 'Submit'}
+        </Button>
+      </form>
+
+      {/* Table */}
+      <div className="overflow-x-auto shadow-xl">
+        <Table>
+          <Table.Head>
+            <Table.HeadCell>Name</Table.HeadCell>
+            <Table.HeadCell>Address</Table.HeadCell>
+            <Table.HeadCell>Position</Table.HeadCell>
+            <Table.HeadCell>Department Name</Table.HeadCell>
+            <Table.HeadCell>Email</Table.HeadCell>
+            <Table.HeadCell>Roles</Table.HeadCell>
+            <Table.HeadCell>Gender</Table.HeadCell>
+            <Table.HeadCell>Options</Table.HeadCell>
+          </Table.Head>
+          <Table.Body className="divide-y">
+            {employees?.data?.map((emp) => (
+              <Table.Row
+                key={emp._id}
+                className="bg-white dark:border-gray-700 dark:bg-gray-800"
+              >
+                <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
+                  {emp.name}
+                </Table.Cell>
+                <Table.Cell className="whitespace-nowrap">
+                  {emp.address}
+                </Table.Cell>
+                <Table.Cell className="whitespace-nowrap">
+                  {emp.position}
+                </Table.Cell>
+                <Table.Cell className="whitespace-nowrap">
+                  {emp.departmentId.departmentName}
+                </Table.Cell>
+                <Table.Cell className="whitespace-nowrap">
+                  {emp.email}
+                </Table.Cell>
+                <Table.Cell className="whitespace-nowrap">
+                  {emp.roles}
+                </Table.Cell>
+                <Table.Cell className="whitespace-nowrap">
+                  {emp.gender}
+                </Table.Cell>
+                <Table.Cell className="flex gap-1">
+                  <button
+                    value={emp._id}
+                    onClick={(e) => handleEdit(e.target.value)}
+                    className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    value={emp._id}
+                    onClick={(e) => handleDelete(e.target.value)}
+                    className="font-medium text-red-600 hover:underline dark:text-red-500"
+                  >
+                    Delete
+                  </button>
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table>
+      </div>
+    </Layout>
+  );
+};
+
+export default LoginPage;
